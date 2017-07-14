@@ -10,7 +10,7 @@ public class HamiltonPath {
                                 {0  ,0  ,0  ,0 },
                             };
     public static void main(String[] args) {
-        checkGraph nGraph=new checkGraph(16,0.3);
+        checkGraph nGraph=new checkGraph(16,0.1);
         HamiltonPath obj = new HamiltonPath();
         int[][] graph =nGraph.getGraph();//obj.hidatoToGraph(hidato);
         obj.printMat(graph);
@@ -35,7 +35,10 @@ public class HamiltonPath {
 //        if(start!=null)
 //            obj.HamiltonPath(graph,start.x*hidato.length+start.y+1);  //list all Hamiltonian paths start at point 1
 //        else
-            obj.allHamiltonPath(graph);
+        obj.allHamiltonPath(graph);
+        nGraph.maskGraph(graph);
+        count=0;
+        obj.allHamiltonPath(graph);
     }
 
     private boolean checkGraphValidity(int[][] graph) {

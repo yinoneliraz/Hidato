@@ -38,9 +38,9 @@ public class checkGraph {
         buildPath main = new buildPath();
         int[][] solution=new int[size][size];
         main.solution = new int[size];//stores the solution; index 0 is not used, i will use indexes from 1 to 9
-        main.candidates = new HashMap<Integer, java.util.List<Integer>>();//for each position (1 to 9) in the solution, stores a list of candidate elements for that position
+        main.candidates = new HashMap<>();//for each position (1 to 9) in the solution, stores a list of candidate elements for that position
 
-        java.util.List<Integer> values = new LinkedList<Integer>();
+        java.util.List<Integer> values = new LinkedList<>();
         for(int i=1;i<=size;i++){
             values.add(i);
         }
@@ -143,5 +143,24 @@ public class checkGraph {
 
     public void setP(double p) {
         this.p = p;
+    }
+
+    public void maskGraph(int[][] graph) {
+        for(int i=0;i<graph.length;i++){
+            Double d=Math.sqrt(graph.length);
+            Point current=new Point(i/d.intValue(),i%d.intValue());
+            java.util.List<Point> neighborsPoint = getNeighbours(d.intValue(),current);
+            java.util.List<Integer> neighbors=new ArrayList<>();
+            for(Point p:neighborsPoint){
+                neighbors.add(p.x*d.intValue()+p.y);
+            }
+            for(int j:neighbors){
+                double x=rnd.nextDouble();
+                if(x<p){
+                    graph[i][j]=1;
+                    graph[j][i]=1;
+                }
+            }
+        }
     }
 }
