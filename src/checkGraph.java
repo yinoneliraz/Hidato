@@ -44,23 +44,10 @@ public class checkGraph {
         for(int i=1;i<=size;i++){
             values.add(i);
         }
-        /*
-         * because no solution can start from matrix elements 2,4,6 or 8,
-         * for the sake of optimization, the above list can be written as
-         * Arrays.asList(1,3,5,7,9)
-         * the way it is right now is useful to follow the way the program
-         * does the backtracking, when it accidentally starts with either 2,4,6 or 8
-         */
         Collections.shuffle(values);//a random permutation of the list
-        main.candidates.put(1, values);
-        main.setSize(size);
-        int[] sol = main.getSol(1);
-        if(sol==null)
-            return null;
-        Double d=Math.sqrt(size);
         for(int index=0;index<size-1;index++){
-            solution[sol[index]-1][sol[index+1]-1]=1;
-            solution[sol[index+1]-1][sol[index]-1]=1;
+            solution[values.get(index)-1][values.get(index+1)-1]=1;
+            solution[values.get(index+1)-1][values.get(index)-1]=1;
         }
         printMat(solution);
         return solution;
@@ -76,67 +63,8 @@ public class checkGraph {
 
     private ArrayList<Point> getNeighbours(int size, Point current) {
         ArrayList<Point> ret=new ArrayList<>();
-        if(current.x==0){
-            if(current.y==0){
-                ret.add(new Point(0,1));
-                ret.add(new Point(1,1));
-                ret.add(new Point(1,0));
-            }
-            else if(current.y==size-1){
-                ret.add(new Point(0,size-2));
-                ret.add(new Point(1,size-1));
-                ret.add(new Point(1,size-2));
-            }
-            else{
-                ret.add(new Point(0,current.y-1));
-                ret.add(new Point(1,current.y-1));
-                ret.add(new Point(1,current.y));
-                ret.add(new Point(1,current.y+1));
-                ret.add(new Point(0,current.y+1));
-            }
-        }
-        else if(current.x==size-1){
-            if(current.y==0){
-                ret.add(new Point(size-2,0));
-                ret.add(new Point(size-2,1));
-                ret.add(new Point(size-1,1));
-            }
-            else if(current.y==size-1){
-                ret.add(new Point(size-1,size-2));
-                ret.add(new Point(size-2,size-2));
-                ret.add(new Point(size-2,size-1));
-            }
-            else{
-                ret.add(new Point(current.x,current.y-1));
-                ret.add(new Point(current.x-1,current.y-1));
-                ret.add(new Point(current.x-1,current.y));
-                ret.add(new Point(current.x-1,current.y+1));
-                ret.add(new Point(current.x,current.y+1));
-            }
-        }
-        else if(current.y==0){
-            ret.add(new Point(current.x-1,0));
-            ret.add(new Point(current.x-1,1));
-            ret.add(new Point(current.x,1));
-            ret.add(new Point(current.x+1,1));
-            ret.add(new Point(current.x+1,0));
-        }
-        else if(current.y==size-1){
-            ret.add(new Point(current.x-1,current.y));
-            ret.add(new Point(current.x-1,current.y-1));
-            ret.add(new Point(current.x,current.y-1));
-            ret.add(new Point(current.x+1,current.y-1));
-            ret.add(new Point(current.x+1,current.y));
-        }
-        else{
-            ret.add(new Point(current.x-1,current.y-1));
-            ret.add(new Point(current.x-1,current.y));
-            ret.add(new Point(current.x-1,current.y+1));
-            ret.add(new Point(current.x,current.y-1));
-            ret.add(new Point(current.x,current.y+1));
-            ret.add(new Point(current.x+1,current.y-1));
-            ret.add(new Point(current.x+1,current.y));
-            ret.add(new Point(current.x+1,current.y+1));
+        for(int i=0;i<size;i++){
+            ret.add(new Point(i/size,i%size));
         }
         return ret;
     }
@@ -145,7 +73,8 @@ public class checkGraph {
         this.p = p;
     }
 
-    public void maskGraph(int[][] graph) {
+    public int[][] maskGraph(int[][] graph) {
+        int[][] masked=new int[graph.length][graph.length];
         for(int i=0;i<graph.length;i++){
             Double d=Math.sqrt(graph.length);
             Point current=new Point(i/d.intValue(),i%d.intValue());
@@ -154,13 +83,18 @@ public class checkGraph {
             for(Point p:neighborsPoint){
                 neighbors.add(p.x*d.intValue()+p.y);
             }
-            for(int j:neighbors){
+            for(int j=i+1;j<graph.length;j++){
                 double x=rnd.nextDouble();
                 if(x<p){
-                    graph[i][j]=1;
-                    graph[j][i]=1;
+                    masked[i][j]=1;
+                    masked[j][i]=1;
+                }
+                else{
+                    masked[i][j]=graph[i][j];
+                    masked[j][i]=graph[j][i];
                 }
             }
         }
+        return masked;
     }
 }

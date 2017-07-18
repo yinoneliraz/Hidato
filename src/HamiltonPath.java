@@ -1,65 +1,81 @@
 import java.awt.*;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class HamiltonPath {
-    static int [][] hidato ={
-                                {0  ,0  ,0  ,0  },
-                                {0  ,0  ,0  ,0  },
-                                {0  ,0  ,0  ,0  },
-                                {0  ,0  ,0  ,0 },
-                            };
+    static int [][] constraints =   {
+                                        {0  ,0  ,0 },
+                                        {0  ,0  ,0 },
+                                        {0  ,5  ,0 },
+                                    };
+    static ArrayList<Integer>[] possibleLocations=new ArrayList[9];
+
+    static ArrayList<int[]> solutions=new ArrayList<>();
+
     public static void main(String[] args) {
-        checkGraph nGraph=new checkGraph(16,0.1);
+        for(int i=0;i<9 ;i++){
+            //init possible locations arrays
+            possibleLocations[i]=new ArrayList<>();
+        }
+        checkGraph nGraph=new checkGraph(9,0);//create an instance of class checkGraph
         HamiltonPath obj = new HamiltonPath();
-        int[][] graph =nGraph.getGraph();//obj.hidatoToGraph(hidato);
+        int[][] graph =nGraph.getGraph();//get graph with single random hamilton path
         obj.printMat(graph);
-//        if(!obj.checkGraphValidity(graph)) {
-//            System.out.println("Current graph does not have a hamilton path");
-//            return;
-//        }
-        //obj.allHamiltonPath(graph);   //list all Hamiltonian paths of graph
-//        Point start=obj.findValue(hidato,1);
-//        int[][] oldGraph=new int[hidato.length][hidato[0].length];
-//        for(int i=0; i<hidato.length; i++)
-//            for(int j=0; j<hidato[i].length; j++)
-//                oldGraph[i][j]=hidato[i][j];
-//        obj.findValuesByDistance(hidato,graph);
-//        while(!Arrays.deepEquals(hidato, oldGraph)){
-//            for(int i=0; i<hidato.length; i++)
-//                for(int j=0; j<hidato[i
-//                        ].length; j++)
-//                    oldGraph[i][j]=hidato[i][j];
-//            obj.findValuesByDistance(hidato,graph);
-//        }
-//        if(start!=null)
-//            obj.HamiltonPath(graph,start.x*hidato.length+start.y+1);  //list all Hamiltonian paths start at point 1
-//        else
-        obj.allHamiltonPath(graph);
-        nGraph.maskGraph(graph);
+        obj.allHamiltonPath(graph,solutions);//find all possible solutions of hamilton graph
+        nGraph.maskGraph(graph);//add random edges to graph to mask it
         count=0;
-        obj.allHamiltonPath(graph);
+        ArrayList<int[]>[] maskedsolutions=new ArrayList[10];// create arrays to store solutions of random graphs
+
+
+        maskedsolutions[0]=new ArrayList<>();
+        nGraph.setP(0.55);
+        int[][] masked=nGraph.maskGraph(graph);
+        obj.printMat(masked);
+        obj.allHamiltonPath(masked, maskedsolutions[0]);
+        if(compareSolutions(solutions,maskedsolutions[0])){//check if we got the solution we expected
+            System.out.println("Got correct solution");
+        }
+        else{
+            System.out.println("Didnt find correct solution");
+        }
+        System.out.println("Found " + maskedsolutions[0].size() + " solutions");
+        if(maskedsolutions[0].size()>0){
+            System.out.println("One solution is:");
+            for(int i=0;i<maskedsolutions[0].get(0).length;i++){
+                System.out.print(maskedsolutions[0].get(0)[i] + ",");
+            }
+        }
+    }
+
+    private static boolean compareSolutions(ArrayList<int[]> solutions, ArrayList<int[]> maskedsolutions) {
+        for(int[] sol:solutions){
+            for(int[] masked : maskedsolutions){
+                if (Arrays.equals(masked,sol)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean checkGraphValidity(int[][] graph) {
         int index=1;
         int dist=0;
         while(index<graph.length){
-            Point a=findValue(hidato,index);
+            Point a=findValue(constraints,index);
             while(a==null) {
                 index++;
                 dist++;
-                a = findValue(hidato, index);
+                a = findValue(constraints, index);
             }
             index++;
             dist++;
-            Point b=findValue(hidato,index);
+            Point b=findValue(constraints,index);
             while(b==null) {
                 index++;
                 if(index>graph.length)
                     return true;
                 dist++;
-                b = findValue(hidato, index);
+                b = findValue(constraints, index);
             }
             if(!existPath(graph,a,b,dist))
                 return false;
@@ -68,8 +84,8 @@ public class HamiltonPath {
     }
 
     private boolean existPath(int[][] graph, Point a, Point b, int dist) {
-        ArrayList<Integer> res=getNeighboursByDistance(graph,dist,a.x*hidato.length+a.y);
-        return res.contains(b.x*hidato.length+b.y);
+        ArrayList<Integer> res=getNeighboursByDistance(graph,dist,a.x* constraints.length+a.y);
+        return res.contains(b.x* constraints.length+b.y);
     }
 
     static int len;
@@ -301,13 +317,13 @@ public class HamiltonPath {
         return ret;
     }
 
-    public void allHamiltonPath(int[][] x) {  //List all possible Hamilton path in the graph
+    public void allHamiltonPath(int[][] x, ArrayList<int[]> solutions) {  //List all possible Hamilton path in the graph
         len = x.length;
         path = new int[len];
         int i;
         for (i = 0; i < len; i++) { //Go through column(of matrix)
             path[0] = i + 1;
-            findHamiltonpath(x, 0, i, 0);
+            findHamiltonpath(x, 0, i, 0,solutions);
         }
     }
 
@@ -316,19 +332,19 @@ public class HamiltonPath {
         path = new int[len];
         int i=start - 1;
         path[0] = i + 1;
-        findHamiltonpath(x, 0, i, 0);
+        findHamiltonpath(x, 0, i, 0, solutions);
     }
 
-    private void findHamiltonpath(int[][]M,int x,int y,int l){
+    private void findHamiltonpath(int[][] M, int x, int y, int l, ArrayList<int[]> solutions){
 
         int i;
         for(i=x;i<len;i++){         //Go through row
             //Start constraints
             l++;
             Point want;
-            want=findValue(hidato,l+1);//find the desired location
+            want=findValue(constraints,l+1);//find the desired location
             l--;
-            if(want!=null && want.x*hidato.length+want.y!=i) {
+            if(want!=null && want.x* constraints.length+want.y!=i) {
                 continue;
             }
             //End constraints
@@ -336,20 +352,24 @@ public class HamiltonPath {
 
                 if(detect(path,i+1))// if detect a point that already in the path => duplicate
                     continue;
-
                 l++;            //Increase path length due to 1 new point is connected
                 path[l]=i+1;    //correspond to the array that start at 0, graph that start at point 1
-                if(l==len-1){//Except initial point already count =>success connect all point
+                if(l==len-1){   //Except initial point already count =>success connect all point
                     count++;
                     if (count ==1)
                         System.out.println("Hamilton path of graph: ");
-                    display(path);
+                    int[] addToList=Arrays.copyOf(path,path.length);
+                    solutions.add(addToList);
+                    for(int k=0;k<path.length;k++){
+                        if(!possibleLocations[k].contains(path[k]))
+                            possibleLocations[k].add(path[k]);
+                    }
                     l--;
                     continue;
                 }
 
                 M[i][y]=M[y][i]=0;  //remove the path that has been get and
-                findHamiltonpath(M,0,i,l); //recursively start to find new path at new end point
+                findHamiltonpath(M,0,i,l, solutions); //recursively start to find new path at new end point
                 l--;                // reduce path length due to the failure to find new path
                 M[i][y] = M[y][i]=1; //and tranform back to the inital form of adjacent matrix(graph)
             }
@@ -383,7 +403,7 @@ public class HamiltonPath {
     private boolean neighbourWith(int[][] m, Point next, Point first) {
         if(first==null || next==null)
             return false;
-        return (m[hidato.length*next.x +next.y][hidato.length*first.x +first.y]==1);
+        return (m[constraints.length*next.x +next.y][constraints.length*first.x +first.y]==1);
     }
 
     public void display(int[] x) {
@@ -391,10 +411,10 @@ public class HamiltonPath {
         for(int i:x){
             System.out.print(i+" ");
         }
-        int[][] finalHidato=new int[hidato.length][hidato[0].length];
+        int[][] finalHidato=new int[constraints.length][constraints[0].length];
         System.out.println();
         for(int k=0;k<path.length;k++) {
-            if(k>=hidato.length*hidato.length)
+            if(k>= constraints.length* constraints.length)
                 continue;
             int row,col;
             row=(path[k]-1)/finalHidato.length;
