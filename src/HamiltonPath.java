@@ -44,6 +44,17 @@ public class HamiltonPath {
                 System.out.print(maskedsolutions[0].get(0)[i] + ",");
             }
         }
+        System.out.println();
+        int counter=1;
+        for(ArrayList<Integer> location:possibleLocations){
+            System.out.println("Possible locations for " + counter + " place:");
+            for(Integer i:location){
+                System.out.print(i + ", ");
+            }
+            counter++;
+            System.out.println();
+
+        }
     }
 
     private static boolean compareSolutions(ArrayList<int[]> solutions, ArrayList<int[]> maskedsolutions) {
